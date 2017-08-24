@@ -1,7 +1,7 @@
 package ghanta
 
 import com.ghanta.SparkRePartitioner
-import com.ghanta.SparkRePartitioner.{Columns, NonPartitionColumn, PartitionColumn, PartitionColumn}
+import com.ghanta.SparkRePartitioner.{Columns, NonPartitionColumn, PartitionColumn}
 import org.apache.hadoop.hive.metastore.api.FieldSchema
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.Assertions._
