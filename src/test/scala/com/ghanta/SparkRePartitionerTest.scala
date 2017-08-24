@@ -1,11 +1,13 @@
 package ghanta
 
-import com.ghanta.SparkRePartitioner
+import com.ghanta.{HiveTableDataFetcher, SparkRePartitioner}
 import com.ghanta.SparkRePartitioner.{Columns, NonPartitionColumn, PartitionColumn}
 import org.apache.hadoop.hive.metastore.api.FieldSchema
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.Assertions._
 import org.scalatest.junit.JUnitRunner
+import org.scalactic._
+import TypeCheckedTripleEquals._
 
 /**
   * Created by devjyotip on 8/22/17.
@@ -33,4 +35,11 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
         s should contain ("account_id")
         s should contain ("source")
     }
+
+
+   val query = HiveTableDataFetcher("tenaliv2", "usagemap", Map("submit_time" -> ">='2017-08-01'"))
+   "Query" should "equal" in {
+     query should equal ("SELECT * FROM tenaliv2.usagemap WHERE submit_time>='2017-08-01'")
+   }
+
 }

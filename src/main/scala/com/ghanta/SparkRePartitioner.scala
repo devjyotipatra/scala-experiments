@@ -67,5 +67,14 @@ object SparkRePartitioner {
       (Columns(partitionsColumns, ColumnType.Partitioned), NonPartitionColumn(otherColumns, ColumnType.NonPartitioned))
     }
   }
+}
 
+
+class HiveTableDataFetcher(schema: String, table: String, predicates: Map[String, String])
+
+object HiveTableDataFetcher {
+  def apply(schema: String, table: String, predicates: Map[String, String]): String = {
+    val predicateStr = predicates.map(p => s"${p._1}${p._2}").mkString(" AND ")
+    s"SELECT * FROM $schema.$table WHERE $predicateStr"
+  }
 }
