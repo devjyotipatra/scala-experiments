@@ -11,6 +11,10 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient
 import org.apache.hadoop.hive.metastore.api._
 import org.apache.thrift.TException
 
+import org.apache.spark._
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql._
+
 import collection.JavaConversions
 
 
@@ -40,7 +44,7 @@ object SparkRePartitioner {
     extends Columns(columns, _type)
 
 
-  class MetaStoreClient(redisEndpoint: String, apiUrl: String, apiToken: String,
+  private[ghanta] class MetaStoreClient(redisEndpoint: String, apiUrl: String, apiToken: String,
                         TTL_MINS: Int = 1000, MISSINGTTL_MINS: Int = 10000) {
 
     def getColumns(tableInfo: Table): Seq[FieldSchema] = {
@@ -64,17 +68,8 @@ object SparkRePartitioner {
       val partitionsColumns: Seq[FieldSchema] = getPartitionColumns(tableInfo)
       val otherColumns: Seq[FieldSchema] = getColumns(tableInfo)
 
-      (Columns(partitionsColumns, ColumnType.Partitioned), NonPartitionColumn(otherColumns, ColumnType.NonPartitioned))
+      (Columns(partitionsColumns, ColumnType.Partitioned), Columns(otherColumns, ColumnType.NonPartitioned))
     }
   }
 }
 
-
-class HiveTableDataFetcher(schema: String, table: String, predicates: Map[String, String])
-
-object HiveTableDataFetcher {
-  def apply(schema: String, table: String, predicates: Map[String, String]): String = {
-    val predicateStr = predicates.map(p => s"${p._1}${p._2}").mkString(" AND ")
-    s"SELECT * FROM $schema.$table WHERE $predicateStr"
-  }
-}
