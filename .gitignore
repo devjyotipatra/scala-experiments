@@ -2,3 +2,4 @@
 .idea/
 lib/
 target/
+metastore_db/
