@@ -1,46 +1,25 @@
 package com.ghanta
 
-import com.ghanta.SparkRePartitioner.{Columns, MetaStoreClient, NonPartitionColumn, PartitionColumn}
+import com.ghanta.ColumnInfoFetcher.{Columns, MetaStoreClient, NonPartitionColumn, PartitionColumn}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql._
 
 /**
   * Created by devjyotip on 8/28/17.
   */
-abstract class ETL(redisEndpoint: String, apiUrl: String, apiToken: String) {
+private[ghanta] abstract class RepartitionETL(session: SparkSession, redisEndpoint: String,
+                                              apiUrl: String, apiToken: String) {
+  import session.implicits._
+
   var sourceColumns: (Columns, Columns) = null;
   var targetColumns: (Columns, Columns) = null;
+
+  var (sourceSchema, sourceTable, targetSchema, targetTable) = ("", "", "", "");
+
 
   def getSourceColumns() = sourceColumns
 
   def getTargetColumns() = targetColumns
-}
-
-
-class RepartitionerETL(redisEndpoint: String, apiUrl: String, apiToken: String)
-  extends ETL(redisEndpoint, apiUrl, apiToken)  {
-  var (sourceSchema, sourceTable, targetSchema, targetTable) = ("", "", "", "");
-
-  val session = SparkSession.builder()
-    .appName("Ghanta Session")
-    .enableHiveSupport()
-    .config("spark.sql.shuffle.partitions", 4)
-    .getOrCreate()
-
-  import session.implicits._
-
-  def apply(accountId: Int, srcSchema: String, srcTable: String,
-            tgtSchema: String, tgtTable: String): Unit = {
-    sourceSchema = srcSchema;
-    sourceTable = srcTable;
-    targetSchema = tgtSchema;
-    targetTable = tgtTable;
-    val client = new MetaStoreClient(redisEndpoint, apiUrl, apiToken)
-
-
-    sourceColumns = client.getTableSchema(accountId, sourceTable, sourceSchema)
-    targetColumns = client.getTableSchema(accountId, targetTable, targetSchema)
-  }
 
 
   def validate(): Boolean = {
@@ -64,6 +43,25 @@ class RepartitionerETL(redisEndpoint: String, apiUrl: String, apiToken: String)
       }
     }
   }
+}
+
+
+class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, apiUrl: String, apiToken: String)
+  extends RepartitionETL(session, redisEndpoint, apiUrl, apiToken)  {
+
+  def apply(accountId: Int, srcSchema: String, srcTable: String,
+            tgtSchema: String, tgtTable: String): Unit = {
+    sourceSchema = srcSchema;
+    sourceTable = srcTable;
+    targetSchema = tgtSchema;
+    targetTable = tgtTable;
+    val client = new MetaStoreClient(redisEndpoint, apiUrl, apiToken)
+
+
+    sourceColumns = client.getTableSchema(accountId, sourceTable, sourceSchema)
+    targetColumns = client.getTableSchema(accountId, targetTable, targetSchema)
+  }
+
 
   def extractAndLoad(extractPredicates: Map[String, String]): Unit = {
     //Extract

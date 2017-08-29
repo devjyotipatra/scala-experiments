@@ -4,21 +4,18 @@ package com.ghanta
   * Created by devjyotip on 8/22/17.
   */
 
-import com.ghanta.SparkRePartitioner.ColumnType.ColumnType
+import com.ghanta.ColumnInfoFetcher.ColumnType.ColumnType
 import com.qubole.tenali.metastore.APIMetastoreClient
 import com.qubole.tenali.metastore.CachingMetastoreClient
 import org.apache.hadoop.hive.metastore.IMetaStoreClient
 import org.apache.hadoop.hive.metastore.api._
 import org.apache.thrift.TException
 
-import org.apache.spark._
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql._
 
 import collection.JavaConversions
 
 
-object SparkRePartitioner {
+object ColumnInfoFetcher {
 
   object ColumnType extends Enumeration {
     type ColumnType = Value
@@ -72,4 +69,5 @@ object SparkRePartitioner {
     }
   }
 }
+
 
