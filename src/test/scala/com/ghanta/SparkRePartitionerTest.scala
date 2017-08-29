@@ -13,7 +13,7 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   val redisEndpoint: String = "mojave-redis.imzqhl.0001.use1.cache.amazonaws.com"
   val apiUrl: String = "qa3.qubole.net"
   val apiToken: String = "9VYjFpwMoe3hmzqPfpaS2mFFN7wr4srC8vNT5wXnAxYCGFH3pvtJ4B56ZSPCeu2v"
-  val accountId = 5911
+  val accountId = 1208
   val sourceSchema = "tenaliv2"
   val sourceTable = "usagemap"
   val targetSchema = "tenaliv2"

@@ -58,8 +58,8 @@ class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, ap
     val client = new MetaStoreClient(redisEndpoint, apiUrl, apiToken)
 
 
-    sourceColumns = client.getTableSchema(accountId, sourceTable, sourceSchema)
-    targetColumns = client.getTableSchema(accountId, targetTable, targetSchema)
+    sourceColumns = client.getTableSchema(accountId, sourceSchema, sourceTable)
+    targetColumns = client.getTableSchema(accountId, targetSchema, targetTable)
   }
 
 
