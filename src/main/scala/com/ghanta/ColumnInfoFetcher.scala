@@ -58,10 +58,11 @@ object ColumnInfoFetcher {
     @throws(classOf[UnknownDBException])
     def getTableSchema(accountId: Int, schema: String, table: String): (Columns, Columns) = {
       val apimetastoreClient = new APIMetastoreClient(accountId, apiUrl, apiToken)
-      val metastoreClient: IMetaStoreClient = new CachingMetastoreClient(
+      /*val metastoreClient: IMetaStoreClient = new CachingMetastoreClient(
                     redisEndpoint, String.valueOf(accountId), TTL_MINS, apimetastoreClient, MISSINGTTL_MINS, true)
 
-      val tableInfo: Table = metastoreClient.getTable(schema, table)
+      val tableInfo: Table = metastoreClient.getTable(schema, table)*/
+      val tableInfo: Table = apimetastoreClient.getTable(schema, table)
       val partitionsColumns: Seq[FieldSchema] = getPartitionColumns(tableInfo)
       val otherColumns: Seq[FieldSchema] = getColumns(tableInfo)
 
