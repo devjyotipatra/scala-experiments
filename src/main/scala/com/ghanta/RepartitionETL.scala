@@ -88,7 +88,7 @@ class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, ap
 
     var projectColsStr = sourceColumns match {
       case (pc: PartitionColumn, npc: NonPartitionColumn) =>
-        getColumnsFromFieldSchema(npc.columns ++ pc.columns).sorted
+        getColumnsFromFieldSchema((npc.columns ++ pc.columns).sortWith(_.getName < _.getName))
     }
 
     s"SELECT $projectColsStr FROM $sourceSchema.$sourceTable WHERE $predicateStr"

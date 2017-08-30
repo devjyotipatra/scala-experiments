@@ -73,7 +73,7 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
     assert(sourceQuery == s"SELECT $projectStr FROM $sourceSchema.$sourceTable WHERE $predicateStr")
   }
 
-  val tgtQuery = etl.getLoadQuery(s"$targetSchema.$targetTable")
+  val tgtQuery = etl.getLoadQuery(s"temp.$sourceTable")
   "Target Query" should "return True" in {
     val projectColsStr =  (targetColumns.sorted ++ targetPartitions).mkString(", ")
     val partitionColsStr = targetPartitions.mkString(", ")
