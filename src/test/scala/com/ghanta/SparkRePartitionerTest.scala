@@ -44,8 +44,8 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   "MetaStoreClient get Partition Columns" should "return True" in {
     val s = etl.getSourceColumns() match {
       case (p: Columns, np: Columns) => p match {
-        case PartitionColumn(Seq(a: FieldSchema, b: FieldSchema, c: FieldSchema), _) => {
-          Set(a.getName(), b.getName(), c.getName())
+        case PartitionColumn(Seq(a: FieldSchema, b: FieldSchema), _) => {
+          Set(a.getName(), b.getName())
         }
       }
     }
@@ -58,6 +58,8 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   "Source Query" should "return True" in {
     val predicateStr = if (sourceFilters.isEmpty) "1=1" else sourceFilters.map(p => s"${p._1}=${p._2}").mkString(" AND ")
     val projectStr = sourceColumns.mkString(", ")
+    println(sourceQuery)
+    println(s"SELECT $projectStr FROM $sourceSchema.$sourceTable WHERE $predicateStr")
     assert(sourceQuery == s"SELECT $projectStr FROM $sourceSchema.$sourceTable WHERE $predicateStr")
   }
 
