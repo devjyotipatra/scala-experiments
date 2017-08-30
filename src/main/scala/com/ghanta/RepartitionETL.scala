@@ -87,7 +87,8 @@ class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, ap
     val predicateStr = if (predicates.isEmpty) "1=1" else predicates.map(p => s"${p._1}=${p._2}").mkString(" AND ")
 
     var projectColsStr = sourceColumns match {
-      case (pc: PartitionColumn, npc: NonPartitionColumn) => getColumnsFromFieldSchema(pc.columns ++ npc.columns)
+      case (pc: PartitionColumn, npc: NonPartitionColumn) =>
+        getColumnsFromFieldSchema(npc.columns.sortWith(_.getName < _.getName) ++ pc.columns)
     }
 
     s"SELECT $projectColsStr FROM $sourceSchema.$sourceTable WHERE $predicateStr"
@@ -96,7 +97,8 @@ class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, ap
 
   def getLoadQuery(tempTable: String): String = {
     val projectColsStr = targetColumns match {
-      case (pc: PartitionColumn, npc: NonPartitionColumn) => getColumnsFromFieldSchema(pc.columns ++ npc.columns)
+      case (pc: PartitionColumn, npc: NonPartitionColumn) =>
+        getColumnsFromFieldSchema(npc.columns.sortWith(_.getName < _.getName) ++ pc.columns)
     }
 
     val partitionColsStr = targetColumns match {

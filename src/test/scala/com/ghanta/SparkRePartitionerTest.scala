@@ -57,9 +57,7 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   val sourceQuery = etl.getExtractQuery(sourceFilters)
   "Source Query" should "return True" in {
     val predicateStr = if (sourceFilters.isEmpty) "1=1" else sourceFilters.map(p => s"${p._1}=${p._2}").mkString(" AND ")
-    val projectStr = sourceColumns.mkString(", ")
-    println(sourceQuery)
-    println(s"SELECT $projectStr FROM $sourceSchema.$sourceTable WHERE $predicateStr")
+    val projectStr = sourceColumns.sortWith(_ < _).mkString(", ")
     assert(sourceQuery == s"SELECT $projectStr FROM $sourceSchema.$sourceTable WHERE $predicateStr")
   }
 
