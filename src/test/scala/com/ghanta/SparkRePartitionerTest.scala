@@ -18,7 +18,7 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   val sourceTable = "mrTez"
   val targetSchema = "processed_interm"
   val targetTable = "mrTez"
-  val sourceFilters = Map("submit_time" -> ">='2017-08-01'")
+  val sourceFilters = Map("event_date" -> "='2017-08-01'")
   val targetColumns = Seq("event_id", "command_id", "job_id", "event_data", "source", "cluster_tag" ,
                               "cluster_id", "env_url", "event_date", "event_hour", "event_time")
   val targetPartitions = Seq("processed_date", "processed_hour")
@@ -34,7 +34,10 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   val etl = new NoTransformRepartitionETL(session, redisEndpoint, apiUrl, apiToken)
   etl.apply(accountId, sourceSchema, sourceTable, targetSchema, targetTable)
 
-  "MetaStoreClient" should "return Partition Keys" in {
+
+  // Tests start here
+
+  "MetaStoreClient get Partition Columns" should "return True" in {
     val s = etl.getSourceColumns() match {
       case (p: Columns, np: Columns) => p match {
         case PartitionColumn(Seq(a: FieldSchema, b: FieldSchema, c: FieldSchema), _) => {
