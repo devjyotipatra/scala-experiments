@@ -14,10 +14,15 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   val apiUrl: String = "qa3.qubole.net"
   val apiToken: String = "9VYjFpwMoe3hmzqPfpaS2mFFN7wr4srC8vNT5wXnAxYCGFH3pvtJ4B56ZSPCeu2v"
   val accountId = 1208
-  val sourceSchema = "tenaliv2"
-  val sourceTable = "usagemap"
-  val targetSchema = "tenaliv2"
-  val targetTable = "usagemap_test"
+  val sourceSchema = "processed"
+  val sourceTable = "mrTez"
+  val targetSchema = "processed_interm"
+  val targetTable = "mrTez"
+  val sourceFilters = Map("submit_time" -> ">='2017-08-01'")
+  val targetColumns = Seq("event_id", "command_id", "job_id", "event_data", "source", "cluster_tag" ,
+                              "cluster_id", "env_url", "event_date", "event_hour", "event_time")
+  val targetPartitions = Seq("processed_date", "processed_hour")
+
 
   val session = SparkSession.builder()
     .appName("Ghanta Session")
@@ -38,24 +43,22 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
       }
     }
 
-    /*s should contain("submit_time")
-    s should contain("account_id")
-    s should contain("source")*/
-
     s forall(Set("submit_time", "account_id", "source") contains)
   }
 
 
-
-/*
-  val sourceQuery = etl.getExtractQuery(Map("submit_time" -> ">='2017-08-01'"))
-  "Query" should "return True" in {
-    assert(sourceQuery == "SELECT * FROM tenaliv2.usagemap WHERE submit_time>='2017-08-01'")
+  val sourceQuery = etl.getExtractQuery(sourceFilters)
+  "Source Query" should "return True" in {
+    val predicateStr = if (sourceFilters.isEmpty) "1=1" else sourceFilters.map(p => s"${p._1}=${p._2}").mkString(" AND ")
+    assert(sourceQuery == s"SELECT * FROM $sourceSchema.$sourceTable WHERE $predicateStr")
   }
 
-  val tgtQuery = etl.getLoadQuery("temp.usagemap")
-  "Query" should "return True" in {
-    assert(tgtQuery == "")
-  }*/
+  val tgtQuery = etl.getLoadQuery(s"$targetSchema.$targetTable")
+  "Target Query" should "return True" in {
+    val projectColsStr =  (targetColumns ++ targetPartitions).mkString(", ")
+    val partitionColsStr = targetPartitions.mkString(", ")
+
+    assert(tgtQuery == s"INSERT OVERWRITE TABLE $targetSchema.$targetTable PARTITION($partitionColsStr) SELECT $projectColsStr FROM temp.$sourceTable")
+  }
 
 }
