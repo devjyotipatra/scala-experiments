@@ -18,7 +18,11 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
   val sourceTable = "mrTez"
   val targetSchema = "processed_interm"
   val targetTable = "mrTez"
+
+  val sourceColumns = Seq("event_id", "command_id", "job_id", "event_data", "source", "cluster_tag" ,
+    "cluster_id", "env_url", "processed_date", "processed_hour", "event_time", "event_date", "event_hour")
   val sourceFilters = Map("event_date" -> "='2017-08-01'")
+
   val targetColumns = Seq("event_id", "command_id", "job_id", "event_data", "source", "cluster_tag" ,
                               "cluster_id", "env_url", "event_date", "event_hour", "event_time")
   val targetPartitions = Seq("processed_date", "processed_hour")
@@ -46,14 +50,15 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
       }
     }
 
-    s forall(Set("submit_time", "account_id", "source") contains)
+    s forall(Set("event_date", "event_hour") contains)
   }
 
 
   val sourceQuery = etl.getExtractQuery(sourceFilters)
   "Source Query" should "return True" in {
     val predicateStr = if (sourceFilters.isEmpty) "1=1" else sourceFilters.map(p => s"${p._1}=${p._2}").mkString(" AND ")
-    assert(sourceQuery == s"SELECT * FROM $sourceSchema.$sourceTable WHERE $predicateStr")
+    val projectStr = sourceColumns.mkString(", ")
+    assert(sourceQuery == s"SELECT $projectStr FROM $sourceSchema.$sourceTable WHERE $predicateStr")
   }
 
   val tgtQuery = etl.getLoadQuery(s"$targetSchema.$targetTable")

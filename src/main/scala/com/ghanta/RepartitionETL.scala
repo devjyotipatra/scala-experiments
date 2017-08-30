@@ -1,13 +1,14 @@
 package com.ghanta
 
 import com.ghanta.ColumnInfoFetcher.{Columns, MetaStoreClient, NonPartitionColumn, PartitionColumn}
+import org.apache.hadoop.hive.metastore.api.FieldSchema
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql._
 
 /**
   * Created by devjyotip on 8/28/17.
   */
-private[ghanta] abstract class RepartitionETL(session: SparkSession, redisEndpoint: String,
+sealed abstract class RepartitionETL(session: SparkSession, redisEndpoint: String,
                                               apiUrl: String, apiToken: String) {
   import session.implicits._
 
@@ -43,6 +44,11 @@ private[ghanta] abstract class RepartitionETL(session: SparkSession, redisEndpoi
       }
     }
   }
+
+  def getColumnsFromFieldSchema(columns: Seq[FieldSchema]): String = columns.map(
+                                                                  s => s match {
+                                                                    case t: FieldSchema => t.getName
+                                                                  }).mkString(", ")
 }
 
 
@@ -81,7 +87,7 @@ class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, ap
     val predicateStr = if (predicates.isEmpty) "1=1" else predicates.map(p => s"${p._1}=${p._2}").mkString(" AND ")
 
     var projectColsStr = sourceColumns match {
-      case (pc: PartitionColumn, npc: NonPartitionColumn) => (pc.columns ++ npc.columns).mkString(", ")
+      case (pc: PartitionColumn, npc: NonPartitionColumn) => getColumnsFromFieldSchema(pc.columns ++ npc.columns)
     }
 
     s"SELECT $projectColsStr FROM $sourceSchema.$sourceTable WHERE $predicateStr"
@@ -90,11 +96,11 @@ class NoTransformRepartitionETL(session: SparkSession, redisEndpoint: String, ap
 
   def getLoadQuery(tempTable: String): String = {
     val projectColsStr = targetColumns match {
-      case (pc: PartitionColumn, npc: NonPartitionColumn) => (pc.columns ++ npc.columns).mkString(", ")
+      case (pc: PartitionColumn, npc: NonPartitionColumn) => getColumnsFromFieldSchema(pc.columns ++ npc.columns)
     }
 
     val partitionColsStr = targetColumns match {
-      case (pc: PartitionColumn, _) => pc.columns.mkString(", ")
+      case (pc: PartitionColumn, _) => getColumnsFromFieldSchema(pc.columns)
     }
 
     s"INSERT OVERWRITE TABLE $targetSchema.$targetTable PARTITION($partitionColsStr) SELECT $projectColsStr FROM $tempTable"
