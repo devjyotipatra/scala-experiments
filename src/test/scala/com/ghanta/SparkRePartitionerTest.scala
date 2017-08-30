@@ -41,7 +41,7 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
 
   // Tests start here
 
-  "MetaStoreClient get Partition Columns" should "return True" in {
+  "MetaStoreClient GET Source Partition Columns" should "return True" in {
     val s = etl.getSourceColumns() match {
       case (p: Columns, np: Columns) => p match {
         case PartitionColumn(Seq(a: FieldSchema, b: FieldSchema), _) => {
@@ -51,6 +51,18 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
     }
 
     s forall(Set("event_date", "event_hour") contains)
+  }
+
+  "MetaStoreClient GET Target Partition Columns" should "return True" in {
+    val s = etl.getSourceColumns() match {
+      case (p: Columns, np: Columns) => p match {
+        case PartitionColumn(Seq(a: FieldSchema, b: FieldSchema), _) => {
+          Set(a.getName(), b.getName())
+        }
+      }
+    }
+
+    s forall(Set("processed_date", "processed_hour") contains)
   }
 
 
@@ -63,7 +75,7 @@ class SparkRePartitionerTest extends FlatSpec with Matchers {
 
   val tgtQuery = etl.getLoadQuery(s"$targetSchema.$targetTable")
   "Target Query" should "return True" in {
-    val projectColsStr =  (targetColumns ++ targetPartitions).mkString(", ")
+    val projectColsStr =  (targetColumns.sorted ++ targetPartitions).mkString(", ")
     val partitionColsStr = targetPartitions.mkString(", ")
 
     assert(tgtQuery == s"INSERT OVERWRITE TABLE $targetSchema.$targetTable PARTITION($partitionColsStr) SELECT $projectColsStr FROM temp.$sourceTable")
